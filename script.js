@@ -1,0 +1,1 @@
+console.log("IT Asset Management - sovellus ladattu onnistuneesti!");

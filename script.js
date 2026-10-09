@@ -14,6 +14,18 @@ function setupNavigation() {
         link.addEventListener("click", (event) => {
             event.preventDefault(); // Estetään perinteinen sivun uudelleenlataus
 
-            navLinksforEach(link => {
-                link.addEventListener
+            //poistetaan "active" luokka kaikista linkeistä
+            navLinks.forEach(1 => 1.classList.remove("active"));{
             })
+
+            // Lisätään "active" luokka klikattuun linkkiin (muuttaa värin siniseksi)
+            link.classList.add("active"); 
+
+            // Haetaan klikatun linkin ID (esim "nav-devices")
+            const viewID = link.id
+
+            // Vaihdetaan näkymä ID:n  perusteella
+            switchView(viewID);
+        });
+    }
+

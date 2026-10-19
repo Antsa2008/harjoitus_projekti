@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Navigaation hallinta
 function setupNavigation() {
-    const navLinks = document.querySelectorAll(".nav-links");
+    const navLinks = document.querySelectorAll(".nav-links a");
 
     navLinks.forEach(link => {
         link.addEventListener("click", (event) => {

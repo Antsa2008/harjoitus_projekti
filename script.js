@@ -1,31 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("IT Asset Management - sovellus käynnistetty!");
 
-
     // Alustetaan navigointitoiminnallisuus
     setupNavigation();
 });
 
 // Navigaation hallinta
 function setupNavigation() {
-    const navLinks = document.querySelectorAll("nav-linksa");
+    const navLinks = document.querySelectorAll(".nav-links");
 
     navLinks.forEach(link => {
         link.addEventListener("click", (event) => {
-            event.preventDefault(); // Estetään perinteinen sivun uudelleenlataus
+            event.preventDefault();
 
-            //poistetaan "active" luokka kaikista linkeistä
-            navLinks.forEach(1 => 1.classList.remove("active"));{
-            })
+            // Poistetaan active-luokka kaikista linkeistä
+            navLinks.forEach(navLink => {
+                navLink.classList.remove("active");
+            });
 
-            // Lisätään "active" luokka klikattuun linkkiin (muuttaa värin siniseksi)
-            link.classList.add("active"); 
+            // Aktivoidaan klikattu linkki
+            link.classList.add("active");
 
-            // Haetaan klikatun linkin ID (esim "nav-devices")
-            const viewID = link.id
+            // Haetaan klikatun linkin ID
+            const viewID = link.id;
 
-            // Vaihdetaan näkymä ID:n  perusteella
+            // Vaihdetaan näkymä ID:n perusteella
             switchView(viewID);
         });
-    }
+    });
+}
 

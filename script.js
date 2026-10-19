@@ -7,26 +7,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Navigaation hallinta
 function setupNavigation() {
+    const navContainer = document.querySelector(".nav-links");
     const navLinks = document.querySelectorAll(".nav-links a");
 
+    if (!navContainer || navLinks.length === 0) return;
+
+    // Siirtää sliderin valitun linkin kohdalle
+    function moveSlider(link) {
+        const navRect = navContainer.getBoundingClientRect();
+        const linkRect = link.getBoundingClientRect();
+
+        navContainer.style.setProperty(
+            "--slider-left",
+            `${linkRect.left - navRect.left}px`
+        );
+
+        navContainer.style.setProperty(
+            "--slider-width",
+            `${linkRect.width}px`
+        );
+    }
+
     navLinks.forEach(link => {
-        link.addEventListener("click", (event) => {
+        link.addEventListener("click", event => {
             event.preventDefault();
 
-            // Poistetaan active-luokka kaikista linkeistä
             navLinks.forEach(navLink => {
                 navLink.classList.remove("active");
             });
 
-            // Aktivoidaan klikattu linkki
             link.classList.add("active");
 
-            // Haetaan klikatun linkin ID
-            const viewID = link.id;
+            // Animoidaan slider uuteen paikkaan
+            moveSlider(link);
 
-            // Vaihdetaan näkymä ID:n perusteella
-            switchView(viewID);
+            // Vaihdetaan sivun sisältö
+            switchView(link.id);
         });
+    });
+
+    // Asetetaan slider aluksi aktiivisen linkin alle
+    const initialLink =
+        navContainer.querySelector("a.active") || navLinks[0];
+
+    initialLink.classList.add("active");
+    moveSlider(initialLink);
+
+    // Päivitetään sijainti, jos ikkunan koko muuttuu
+    window.addEventListener("resize", () => {
+        const activeLink = navContainer.querySelector("a.active");
+        if (activeLink) moveSlider(activeLink);
     });
 }
 // Funktio, joka vaihtaa näkymän sisällön ID:n perusteella
@@ -58,4 +88,9 @@ function switchView(viewID) {
             <p>Täällä pidetään kirjaa ohjelmistolisensseistä (esim. Office 365, Adobe).</p>
         `;
     }
+
+    // Käynnistetään sisältöanimaatio uudelleen
+    contentArea.classList.remove("view-enter");
+    void contentArea.offsetWidth;
+    contentArea.classList.add("view-enter");
 }

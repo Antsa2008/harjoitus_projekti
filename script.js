@@ -1,3 +1,44 @@
+// ==========================================
+// MOCK-DATA JA lOCALSTORAGE ALUSTUS
+// ==========================================
+
+const initialDevices = [
+    { id: 1, type: "Tietokone", vendor: "Lenovo", model: "ThinkPad L14", serial: "LN12345", user: "Matti Meikäläinen", status: "Käytössä", purchaseDate: "2024-01-15", warrantyEnd: "2027-01-15", price: 1200, info: "Kehittäjän kone" },
+    { id: 2, type: "Puhelin", vendor: "Apple", model: "iPhone 15", serial: "AP98765", user: "Maija Meikäläinen", status: "Käytössä", purchaseDate: "2024-03-10", warrantyEnd: "2026-03-10", price: 900, info: "" },
+    { id: 3, type: "Tietokone", vendor: "HP", model: "ProBook440", serial: "DL55555", user: "Ei käyttäjää", status: "Varastossa", purchaseDate: "2025-06-01", warrantyEnd: "2028-06-01", price: 1050, info: "Uusi varakone" }
+];
+
+const initialUsers = [
+    { id: 1, name: "Matti Meikäläinen", email: "matti@yritys.fi", department: "IT", title: "Ohjelmistokehittäjä" },
+    { id: 2, name: "Maija Meikäläinen", email: "maija@yritys.fi", department: "Markkinointi", title: "Graafikko" }
+];
+
+const initialLicenses = [
+    { id: 1, name: "Office 365 Enterprise", vendor: "Microsoft", total: 10, used: 8, renewDate: "2026-12-01", cost: 150 },
+    { id: 2, name: "Adobe Creative Cloud", vendor: "Adobe", total: 5, used: 5, renewDate: "2026-11-15", cost: 400 }
+];
+
+// Funktio, joka varmistaa, että data löytyy selaimesta ja palauttaa sen objektina
+function getAppData() {
+    if (!localStorage.getItem("devices")) localStorage.setItem("devices", JSON.stringify(initialDevices));
+    if (!localStorage.getItem("users")) localStorage.setItem("users", JSON.stringify(initialUsers));
+    if (!localStorage.getItem("licenses")) localStorage.setItem("licenses", JSON.stringify(initialLicenses));
+
+    return {
+        devices: JSON.parse(localStorage.getItem("devices")),
+        users: JSON.parse(localStorage.getItem("users")),
+        licenses: JSON.parse(localStorage.getItem("licenses"))
+    };
+}
+
+// Apufunktio datan tallennukseen (kutsutaan myöhemmin kun lisätään/muokataan jotain)
+function saveAppData(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ==========================================
+// SOVELLUKSEN KÄYNNISTYS JA NAVIGOINTI
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     console.log("IT Asset Management - sovellus käynnistetty!");
 

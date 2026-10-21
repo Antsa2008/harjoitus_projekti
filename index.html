@@ -27,6 +27,92 @@
         <p>...</p>
     </main>
 
+    <!-- ======================================================= -->
+    <!-- VAIHE 1: MODAL-IKKUNA UUDEN LAITTEEN LISÄÄMISEEN       -->
+    <!-- ======================================================= -->
+    <div class="modal fade" id="addDeviceModal" tabindex="-1" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="addDeviceModalLabel">Lisää uusi IT-laite</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Sulje"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-add-device">
+                        <!-- Laitetyyppi -->
+                        <div class="mb-3">
+                            <label for="device-type" class="form-label">Laitetyyppi *</label>
+                            <select class="form-select" id="device-type" required>
+                                <option value="" disabled selected>Valitse tyyppi...</option>
+                                <option value="Tietokone">Tietokone</option>
+                                <option value="Puhelin">Puhelin</option>
+                                <option value="Tabletti">Tabletti</option>
+                                <option value="Muu">Muu laite</option>
+                            </select>
+                        </div>
+                        <!-- Valmistaja ja Malli samalla rivillä -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="device-vendor" class="form-label">Valmistaja *</label>
+                                <input type="text" class="form-control" id="device-vendor" required placeholder="esim. Lenovo">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="device-model" class="form-label">Malli *</label>
+                                <input type="text" class="form-control" id="device-model" required placeholder="esim. ThinkPad">
+                            </div>
+                        </div>
+                        <!-- Sarjanumero -->
+                        <div class="mb-3">
+                            <label for="device-serial" class="form-label">Sarjanumero *</label>
+                            <input type="text" class="form-control" id="device-serial" required placeholder="esim. SN-12345">
+                        </div>
+                        <!-- Käyttäjä -->
+                        <div class="mb-3">
+                            <label for="device-user" class="form-label">Käyttäjä</label>
+                            <input type="text" class="form-control" id="device-user" placeholder="esim. Matti Meikäläinen">
+                        </div>
+                        <!-- Tila ja Hinta -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="device-status" class="form-label">Tila *</label>
+                                <select class="form-select" id="device-status" required>
+                                    <option value="Käytössä">Käytössä</option>
+                                    <option value="Varastossa" selected>Varastossa</option>
+                                    <option value="Huollossa">Huollossa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="device-price" class="form-label">Hinta (€)</label>
+                                <input type="number" class="form-control" id="device-price" placeholder="esim. 1000">
+                            </div>
+                        </div>
+                        <!-- Päivämäärät -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="device-purchase" class="form-label">Hankintapäivä</label>
+                                <input type="date" class="form-control" id="device-purchase">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="device-warranty" class="form-label">Takuu päättyy</label>
+                                <input type="date" class="form-control" id="device-warranty">
+                            </div>
+                        </div>
+                        <!-- Lisätiedot -->
+                        <div class="mb-3">
+                            <label for="device-info" class="form-label">Lisätietoja</label>
+                            <textarea class="form-control" id="device-info" rows="2" placeholder="Kuvaus laitteesta..."></textarea>
+                        </div>
+                        <!-- Painikkeet -->
+                        <div class="d-flex justify-content-end gap-2 pt-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Peruuta</button>
+                            <button type="submit" class="btn btn-primary">Tallenna laite</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Linkitetään JavaScript-tiedosto -->
     <script src="script.js"></script>
 

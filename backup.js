@@ -42,8 +42,14 @@ function saveAppData(key, data) {
 document.addEventListener("DOMContentLoaded", () => {
     console.log("IT Asset Management - sovellus käynnistetty!");
 
+    // Alustetaan datat muistiin heti latauksessa
+    getAppData();
+
     // Alustetaan navigointitoiminnallisuus
     setupNavigation();
+
+    // LISÄYS: Avataan dynaaminen Dashboard-näkymä automaattisesti käynnistyksessä
+    switchView("nav-dashboard");
 });
 
 // Navigaation hallinta
@@ -100,18 +106,65 @@ function setupNavigation() {
         if (activeLink) moveSlider(activeLink);
     });
 }
-// Funktio, joka vaihtaa näkymän sisällön ID:n perusteella
 
+// ==========================================
+// VAIHE 2: DYNAAMINEN NÄKYMIEN VAIHTO
+// ==========================================
 function switchView(viewID) {
     const contentArea = document.getElementById("app-content");
 
     // Varmistetaan, että contentArea-elementti on olemassa sivulla
     if (!contentArea) return;
 
+    // Haetaan tuorein data localStoragesta laskureita varten
+    const data = getAppData();
+
     if (viewID === "nav-dashboard") {
+        // Lasketaan laitteiden tilat dynaamisesti datasta
+        const totalDevices = data.devices.length;
+        const inUseDevices = data.devices.filter(d => d.status === "Käytössä").length;
+        const inStorageDevices = data.devices.filter(d => d.status === "Varastossa").length;
+        const inMaintenanceDevices = data.devices.filter(d => d.status === "Huollossa").length;
+        
+        // Lasketaan lisenssien kokonaismäärät ja vapaat paikat dynaamisesti datasta
+        const totalLicenses = data.licenses.reduce((acc, l) => acc + l.total, 0);
+        const freeLicenses = data.licenses.reduce((acc, l) => acc + (l.total - l.used), 0);
+
+        // Luodaan dynaaminen HTML-rakenne Bootstrap-korteilla
         contentArea.innerHTML = `
-            <h1>Dashboard</h1>
-            <p>Tähän tulee yhteenveto laitteista, käyttäjistä ja lisensseistä.</p>
+            <h1 class="mb-4">Dashboard</h1>
+            <div class="row g-3">
+                <!-- IT-Laitteiden kortti -->
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">IT-Laitteet</h5>
+                            <p class="display-5 fw-bold mb-1">${totalDevices}</p>
+                            <small>Käytössä: ${inUseDevices} | Varastossa: ${inStorageDevices} | Huollossa: ${inMaintenanceDevices}</small>
+                        </div>
+                    </div>
+                </div>
+                <!-- Ohjelmistolisenssien kortti -->
+                <div class="col-md-4">
+                    <div class="card text-white bg-success h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Ohjelmistolisenssit</h5>
+                            <p class="display-5 fw-bold mb-1">${totalLicenses}</p>
+                            <small>Vapaita lisenssejä jäljellä: <span class="fw-bold text-warning">${freeLicenses}</span> kpl</small>
+                        </div>
+                    </div>
+                </div>
+                <!-- Työntekijöiden kortti -->
+                <div class="col-md-4">
+                    <div class="card text-white bg-dark h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Työntekijät</h5>
+                            <p class="display-5 fw-bold mb-1">${data.users.length}</p>
+                            <small>Aktiivisia käyttäjiä järjestelmässä</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
     } else if (viewID === "nav-devices") {
         contentArea.innerHTML = `

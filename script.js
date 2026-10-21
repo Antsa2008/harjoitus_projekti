@@ -108,7 +108,7 @@ function setupNavigation() {
 }
 
 // ==========================================
-// VAIHE 2: DYNAAMINEN NÄKYMIEN VAIHTO
+// VAIHE 2 & 3: DYNAAMINEN NÄKYMIEN VAIHTO
 // ==========================================
 function switchView(viewID) {
     const contentArea = document.getElementById("app-content");
@@ -116,7 +116,7 @@ function switchView(viewID) {
     // Varmistetaan, että contentArea-elementti on olemassa sivulla
     if (!contentArea) return;
 
-    // Haetaan tuorein data localStoragesta laskureita varten
+    // Haetaan tuorein data localStoragesta laskureita ja taulukoita varten
     const data = getAppData();
 
     if (viewID === "nav-dashboard") {
@@ -167,10 +167,8 @@ function switchView(viewID) {
             </div>
         `;
     } else if (viewID === "nav-devices") {
-        contentArea.innerHTML = `
-            <h1>Laitteet</h1>
-            <p>Täällä voit hallinnoida yrityksen tietokoneita ja puhelimia.</p>
-        `;
+        // PÄIVITYS (Vaihe 3): Kutsutaan dynaamista tulostusfunktiota pelkän tekstin sijaan
+        renderDevicesView(contentArea, data.devices);
     } else if (viewID === "nav-users") {
         contentArea.innerHTML = `
             <h1>Käyttäjät</h1>
@@ -187,4 +185,63 @@ function switchView(viewID) {
     contentArea.classList.remove("view-enter");
     void contentArea.offsetWidth;
     contentArea.classList.add("view-enter");
+}
+
+// ==========================================
+// VAIHE 3: APUFUNKTIOT TULOSTAMISEEN
+// ==========================================
+
+// Tulostaa laiteluettelon selkeään Bootstrap-taulukkoon
+function renderDevicesView(container, devices) {
+    let tableRows = "";
+    
+    devices.forEach(device => {
+        // Määritetään badge-väri laitteen tilan mukaan
+        let badgeColor = "bg-secondary";
+        if (device.status === "Käytössä") badgeColor = "bg-success";
+        if (device.status === "Varastossa") badgeColor = "bg-info text-dark";
+        if (device.status === "Huollossa") badgeColor = "bg-danger";
+
+        tableRows += `
+            <tr>
+                <td><strong>${device.type}</strong></td>
+                <td>${device.vendor} ${device.model}</td>
+                <td><code class="text-dark">${device.serial}</code></td>
+                <td>${device.user}</td>
+                <td><span class="badge ${badgeColor}">${device.status}</span></td>
+                <td>${device.warrantyEnd}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2">Muokkaa</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>IT-Laitteet</h1>
+            <button class="btn btn-primary" id="btn-add-device">+ Lisää uusi laite</button>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tyyppi</th>
+                            <th>Malli</th>
+                            <th>Sarjanumero</th>
+                            <th>Käyttäjä</th>
+                            <th>Tila</th>
+                            <th>Takuu päättyy</th>
+                            <th>Toiminnot</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
 }

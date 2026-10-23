@@ -1,6 +1,6 @@
- // ==========================================
- // MOCK-DATA JA LOCALSTORAGE ALUSTUS
- // ==========================================
+// ==========================================
+// MOCK-DATA JA LOCALSTORAGE ALUSTUS
+// ==========================================
 
 const initialDevices = [
     { id: 1, type: "Tietokone", vendor: "Lenovo", model: "ThinkPad L14", serial: "LN12345", user: "Matti Meikäläinen", status: "Käytössä", purchaseDate: "2024-01-15", warrantyEnd: "2027-01-15", price: 1200, info: "Kehittäjän kone" },
@@ -17,6 +17,10 @@ const initialLicenses = [
     { id: 1, name: "Office 365 Enterprise", vendor: "Microsoft", total: 10, used: 8, renewDate: "2026-12-01", cost: 150 },
     { id: 2, name: "Adobe Creative Cloud", vendor: "Adobe", total: 5, used: 5, renewDate: "2026-11-15", cost: 400 }
 ];
+
+// Muistetaan, mitä laitetta ollaan muokkaamassa.
+// null tarkoittaa uuden laitteen lisäämistä.
+let editingDeviceId = null;
 
 // ==========================================
 // DATAN HAKU JA TALLENNUS
@@ -46,16 +50,28 @@ function saveAppData(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
 }
 
+// Suojataan HTML-tulostukseen tulevat tekstiarvot.
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
 // ==========================================
 // SOVELLUKSEN KÄYNNISTYS
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("IT Asset Management - sovellus käynistetty!");
+    console.log("IT Asset Management - sovellus käynnistetty!");
 
     getAppData();
     setupNavigation();
     setupDeviceFormListener();
+    setupDeviceButtons();
 
     switchView("nav-dashboard");
 });
@@ -144,7 +160,8 @@ function switchView(viewID) {
 
         const freeLicenses = data.licenses.reduce(
             (acc, license) =>
-                acc + Number(license.total || 0) - Number(license.used || 0),
+                acc + Number(license.total || 0) -
+                Number(license.used || 0),
             0
         );
 
@@ -235,38 +252,40 @@ function renderDevicesView(container, devices) {
 
         if (device.status === "Käytössä") {
             badgeColor = "bg-success";
-        }
-
-        if (device.status === "Varastossa") {
+        } else if (device.status === "Varastossa") {
             badgeColor = "bg-info text-dark";
-        }
-
-        if (device.status === "Huollossa") {
+        } else if (device.status === "Huollossa") {
             badgeColor = "bg-danger";
         }
 
         tableRows += `
             <tr>
-                <td><strong>${device.type}</strong></td>
-                <td>${device.vendor} ${device.model}</td>
+                <td><strong>${escapeHtml(device.type)}</strong></td>
                 <td>
-                    <code class="text-dark">${device.serial}</code>
+                    ${escapeHtml(device.vendor)}
+                    ${escapeHtml(device.model)}
                 </td>
                 <td>
-                    ${device.user || '<span class="text-muted">Ei käyttäjää</span>'}
+                    <code class="text-dark">
+                        ${escapeHtml(device.serial)}
+                    </code>
+                </td>
+                <td>
+                    ${device.user
+                        ? escapeHtml(device.user)
+                        : '<span class="text-muted">Ei käyttäjää</span>'}
                 </td>
                 <td>
                     <span class="badge ${badgeColor}">
-                        ${device.status}
+                        ${escapeHtml(device.status)}
                     </span>
                 </td>
-                <td>${device.warrantyEnd || "-"}</td>
+                <td>${escapeHtml(device.warrantyEnd || "-")}</td>
                 <td>
                     <button
                         type="button"
-                        class="btn btn-sm btn-outline-primary py-0 px-2"
-                        disabled
-                        title="Muokkaustoimintoa ei ole vielä toteutettu">
+                        class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-device"
+                        data-device-id="${escapeHtml(device.id)}">
                         Muokkaa
                     </button>
                 </td>
@@ -281,6 +300,7 @@ function renderDevicesView(container, devices) {
             <button
                 type="button"
                 class="btn btn-primary"
+                id="btn-add-device"
                 data-bs-toggle="modal"
                 data-bs-target="#addDeviceModal">
                 + Lisää uusi laite
@@ -301,17 +321,15 @@ function renderDevicesView(container, devices) {
                             <th>Toiminnot</th>
                         </tr>
                     </thead>
-
                     <tbody>
-                        ${
-                            tableRows ||
-                            `<tr>
+                        ${tableRows || `
+                            <tr>
                                 <td colspan="7"
                                     class="text-center text-muted py-4">
                                     Ei laitteita järjestelmässä.
                                 </td>
-                            </tr>`
-                        }
+                            </tr>
+                        `}
                     </tbody>
                 </table>
             </div>
@@ -320,7 +338,121 @@ function renderDevicesView(container, devices) {
 }
 
 // ==========================================
-// UUDEN LAITTEEN LISÄÄMINEN
+// LISÄYS- JA MUOKKAUSPAINIKKEET
+// ==========================================
+
+function setupDeviceButtons() {
+    const contentArea = document.getElementById("app-content");
+
+    if (!contentArea) return;
+
+    // Tapahtumankäsittely toimii myös uudelleen luoduille taulukkoriveille.
+    contentArea.addEventListener("click", event => {
+        const addButton = event.target.closest("#btn-add-device");
+
+        if (addButton) {
+            editingDeviceId = null;
+            resetDeviceForm();
+            setDeviceModalMode(false);
+            return;
+        }
+
+        const editButton = event.target.closest(".btn-edit-device");
+
+        if (editButton) {
+            const deviceId = Number(editButton.dataset.deviceId);
+            openEditDeviceModal(deviceId);
+        }
+    });
+}
+
+// ==========================================
+// LOMAKKEEN TÄYTTÄMINEN MUOKKAUSTA VARTEN
+// ==========================================
+
+function openEditDeviceModal(deviceId) {
+    const data = getAppData();
+
+    const device = data.devices.find(
+        item => Number(item.id) === deviceId
+    );
+
+    if (!device) {
+        alert("Laitetta ei löytynyt.");
+        return;
+    }
+
+    editingDeviceId = device.id;
+
+    // Täytetään lomake valitun laitteen tiedoilla.
+    document.getElementById("device-type").value = device.type;
+    document.getElementById("device-vendor").value = device.vendor || "";
+    document.getElementById("device-model").value = device.model || "";
+    document.getElementById("device-serial").value = device.serial || "";
+
+    // Vanhoissa tiedoissa käyttäjä voi olla "Ei käyttäjää".
+    document.getElementById("device-user").value =
+        device.user === "Ei käyttäjää" ? "" : (device.user || "");
+
+    document.getElementById("device-status").value =
+        device.status || "Varastossa";
+
+    document.getElementById("device-purchase").value =
+        device.purchaseDate || "";
+
+    document.getElementById("device-warranty").value =
+        device.warrantyEnd || "";
+
+    document.getElementById("device-price").value =
+        device.price ?? "";
+
+    document.getElementById("device-info").value =
+        device.info || "";
+
+    setDeviceModalMode(true);
+
+    // Avataan olemassa oleva Bootstrap-modal.
+    const modalElement = document.getElementById("addDeviceModal");
+
+    if (!modalElement || typeof bootstrap === "undefined") {
+        alert("Muokkausikkunaa ei voitu avata. Tarkista Bootstrapin lataus.");
+        return;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+}
+
+// ==========================================
+// MODALIN OTSIKKO JA TALLENNUSPAINIKE
+// ==========================================
+
+function setDeviceModalMode(isEditing) {
+    const title = document.getElementById("addDeviceModalLabel");
+    const submitButton = document.querySelector(
+        "#form-add-device button[type='submit']"
+    );
+
+    if (title) {
+        title.textContent = isEditing
+            ? "Muokkaa IT-laitetta"
+            : "Lisää uusi IT-laite";
+    }
+
+    if (submitButton) {
+        submitButton.textContent = isEditing
+            ? "Tallenna muutokset"
+            : "Tallenna laite";
+    }
+}
+
+function resetDeviceForm() {
+    const form = document.getElementById("form-add-device");
+
+    if (form) form.reset();
+}
+
+// ==========================================
+// UUDEN LAITTEEN LISÄÄMINEN JA MUOKKAAMINEN
 // ==========================================
 
 function setupDeviceFormListener() {
@@ -334,7 +466,6 @@ function setupDeviceFormListener() {
     form.addEventListener("submit", event => {
         event.preventDefault();
 
-        // Tarkistetaan HTML-lomakkeen required-kentät.
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -342,13 +473,14 @@ function setupDeviceFormListener() {
 
         const data = getAppData();
 
-        const newDevice = {
-            id: Date.now(),
+        // Kootaan lomakkeen tiedot yhteen.
+        const deviceValues = {
             type: document.getElementById("device-type").value,
             vendor: document.getElementById("device-vendor").value.trim(),
             model: document.getElementById("device-model").value.trim(),
             serial: document.getElementById("device-serial").value.trim(),
-            user: document.getElementById("device-user").value.trim(),
+            user: document.getElementById("device-user").value.trim()
+                || "Ei käyttäjää",
             status: document.getElementById("device-status").value,
             purchaseDate: document.getElementById("device-purchase").value,
             warrantyEnd: document.getElementById("device-warranty").value,
@@ -356,10 +488,12 @@ function setupDeviceFormListener() {
             info: document.getElementById("device-info").value.trim()
         };
 
-        // Tarkistetaan, ettei sarjanumeroa ole jo käytetty.
+        // Sarjanumeron on oltava yksilöllinen.
+        // Muokkauksessa sallitaan laitteen oma nykyinen sarjanumero.
         const duplicate = data.devices.some(device =>
             String(device.serial).trim().toLowerCase() ===
-            newDevice.serial.toLowerCase()
+                deviceValues.serial.toLowerCase() &&
+            Number(device.id) !== Number(editingDeviceId)
         );
 
         if (duplicate) {
@@ -367,22 +501,48 @@ function setupDeviceFormListener() {
             return;
         }
 
-        // Tallennetaan uusi laite.
-        data.devices.push(newDevice);
-        saveAppData("devices", data.devices);
+        if (editingDeviceId !== null) {
+            // MUOKKAUS: päivitetään olemassa oleva laite.
+            const index = data.devices.findIndex(
+                device =>
+                    Number(device.id) === Number(editingDeviceId)
+            );
 
-        // Tyhjennetään lomake.
-        form.reset();
+            if (index === -1) {
+                alert("Muokattavaa laitetta ei löytynyt.");
+                return;
+            }
 
-        // Suljetaan modal.
-        const modalElement = document.getElementById("addDeviceModal");
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            data.devices[index] = {
+                ...data.devices[index],
+                ...deviceValues
+            };
 
-        if (modalInstance) {
-            modalInstance.hide();
+            saveAppData("devices", data.devices);
+
+        } else {
+            // LISÄYS: luodaan uusi laite.
+            const newDevice = {
+                id: Date.now(),
+                ...deviceValues
+            };
+
+            data.devices.push(newDevice);
+            saveAppData("devices", data.devices);
         }
 
-        // Päivitetään nykyinen näkymä.
+        // Suljetaan ikkuna ja palautetaan lomake alkutilaan.
+        const modalElement = document.getElementById("addDeviceModal");
+
+        if (modalElement && typeof bootstrap !== "undefined") {
+            bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        }
+
+        form.reset();
+        editingDeviceId = null;
+        setDeviceModalMode(false);
+
+        // Päivitetään näkyvä näkymä.
         const activeNavLink = document.querySelector(
             ".nav-links a.active"
         );

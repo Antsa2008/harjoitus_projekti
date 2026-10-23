@@ -230,57 +230,9 @@ function switchView(viewID) {
 // ==========================================
 
 function renderDevicesView(container, devices) {
-    let tableRows = "";
-
-    devices.forEach(device => {
-        let badgeColor = "bg-secondary";
-
-        if (device.status === "Käytössä") {
-            badgeColor = "bg-success";
-        } else if (device.status === "Varastossa") {
-            badgeColor = "bg-info text-dark";
-        } else if (device.status === "Huollossa") {
-            badgeColor = "bg-danger";
-        }
-
-        tableRows += `
-            <tr>
-                <td><strong>${escapeHtml(device.type)}</strong></td>
-                <td>
-                    ${escapeHtml(device.vendor)}
-                    ${escapeHtml(device.model)}
-                </td>
-                <td>
-                    <code class="text-dark">
-                        ${escapeHtml(device.serial)}
-                    </code>
-                </td>
-                <td>
-                    ${device.user
-                        ? escapeHtml(device.user)
-                        : '<span class="text-muted">Ei käyttäjää</span>'}
-                </td>
-                <td>
-                    <span class="badge ${badgeColor}">
-                        ${escapeHtml(device.status)}
-                    </span>
-                </td>
-                <td>${escapeHtml(device.warrantyEnd || "-")}</td>
-                <td>
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-device"
-                        data-device-id="${escapeHtml(device.id)}">
-                        Muokkaa
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    container.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>IT-Laitteet</h1>
+   container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <h1 class="mb-0">IT-Laitteet</h1> 
 
             <button
                 type="button"
@@ -292,39 +244,44 @@ function renderDevicesView(container, devices) {
             </button>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Tyyppi</th>
-                            <th>Malli</th>
-                            <th>Sarjanumero</th>
-                            <th>Käyttäjä</th>
-                            <th>Tila</th>
-                            <th>Takuu päättyy</th>
-                            <th>Toiminnot</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `
-                            <tr>
-                                <td colspan="7"
-                                    class="text-center text-muted py-4">
-                                    Ei laitteita järjestelmässä.
-                                </td>
-                            </tr>
-                        `}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-}
+        <!-- Haku ja suodattimet -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-6">
+                        <label for="device-search" 
+                                class="form-label">
+                            Hae laitteita:
+                        </label>
+
+                        <input
+                            type="search"
+                            class="form-control"
+                            id="device-search"
+                            placeholder="Malli, sarjanumero, käyttäjä..."
+                            autocomplete="off">   
+                    </div>
+                <div class="col-md-3">
+                    <label for="device-type-filter"
+                            class="form-label">
+                        Laitetyyppi:
+                    </label>
+
+                    <select class="form-select"
+                            id="device-type-filter">
+                        <option value="">Kaikki tyypit</option>
+                        <option value="Tietokone">Tietokone</option>
+                        <option value="Puhelin">Kannettava</option>
+                        <option value="Tabletti">Tabletti</option>
+                    </select>
+                </div>
 
 // ==========================================
-// LISÄYS- JA MUOKKAUSPAINIKKEET
+// JATKA TÄSTÄ MAANANTAINA 26.10.2026
 // ==========================================
+                
+      
 
 function setupDeviceButtons() {
     const contentArea = document.getElementById("app-content");

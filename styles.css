@@ -119,3 +119,81 @@ h1 {
     }
 
 }
+
+/* ==========================================
+   LAITTEIDEN HAKU JA SUODATUS
+   ========================================== */
+
+#device-search,
+#device-type-filter,
+#device-status-filter {
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1e293b;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+/* Hakukenttä erottuu hieman muista kentistä */
+#device-search {
+    padding-left: 14px;
+    font-size: 1rem;
+}
+
+/* Selkeä fokus, kun käyttäjä napsauttaa kenttää */
+#device-search:focus,
+#device-type-filter:focus,
+#device-status-filter:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    outline: none;
+}
+
+/* Hakukentän paikkamerkkiteksti */
+#device-search::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+/* Hakukentän otsikot */
+#app-content .form-label {
+    color: #334155;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Hakutulosten lukumäärä */
+#device-result-count {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+/* Tyhjennyspainike */
+#btn-reset-filters {
+    border-radius: 8px;
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+#btn-reset-filters:hover {
+    background-color: #1e293b;
+    color: white;
+}
+
+/* Taulukon solut */
+#device-table-body td {
+    vertical-align: middle;
+}
+
+/* Pienet näytöt */
+@media (max-width: 768px) {
+    #app-content .card-body {
+        padding: 1rem;
+    }
+
+    #btn-reset-filters {
+        width: 100%;
+    }
+}

@@ -262,23 +262,83 @@ function renderDevicesView(container, devices) {
                             placeholder="Malli, sarjanumero, käyttäjä..."
                             autocomplete="off">   
                     </div>
-                <div class="col-md-3">
-                    <label for="device-type-filter"
-                            class="form-label">
-                        Laitetyyppi:
-                    </label>
 
-                    <select class="form-select"
-                            id="device-type-filter">
-                        <option value="">Kaikki tyypit</option>
-                        <option value="Tietokone">Tietokone</option>
-                        <option value="Puhelin">Kannettava</option>
-                        <option value="Tabletti">Tabletti</option>
-                    </select>
+                    <div class="col-md-3">
+                        <label for="device-type-filter"
+                                class="form-label">
+                            Laitetyyppi:
+                        </label>
+
+                        <select class="form-select"
+                                id="device-type-filter">
+                            <option value="">Kaikki tyypit</option>
+                            <option value="Tietokone">Tietokone</option>
+                            <option value="Puhelin">Puhelin</option>
+                            <option value="Tabletti">Tabletti</option>
+                            <option value="Muu">Muu laite</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3"></div>
+                        <label for="device-status-filter"
+                                class="form-label">
+                            Laitteen tila:
+                        </label>
+
+                        <select class="form-select"
+                                id="device-status-filter">
+                            <option value="">Kaikki tilat</option>
+                            <option value="Varastossa">Varastossa</option>
+                            <option value="Käytössä">Käytössä</option>
+                            <option value="Huollossa">Huollossa</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <small id="device-result-count"
+                            class="text-muted">
+                            aria-live="polite">
+                        </small>
+
+                        <button 
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            id="btn-reset-filters">
+                            Tyhjennä suodattimet
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>
 
+        <!-- Laitetaulukko -->
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light"></thead>
+                        <tr>
+                            <th>Tyyppi</th>
+                            <th>Malli</th>
+                            <th>Sarjanumero</th>
+                            <th>Käyttäjä</th>
+                            <th>Tila</th>
+                            <th>Takuu päättyy</th>
+                            <th>Toiminnot</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="device-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    //Näytetään kaikki laitteet näkymän avautuessa
+    renderDeviceTableRows(devices);
+}   
+    
 // ==========================================
-// JATKA TÄSTÄ MAANANTAINA 26.10.2026
+// JATKA TÄSTÄ TIISTAINA 27.10.2026
 // ==========================================
                 
       

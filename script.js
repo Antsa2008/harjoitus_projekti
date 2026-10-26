@@ -490,12 +490,46 @@ function setupDeviceButtons() {
             setDeviceModalMode(false);
             return;
         }
-
+        
+        // Laitteen muokkaus
         const editButton = event.target.closest(".btn-edit-device");
 
         if (editButton) {
             const deviceId = Number(editButton.dataset.deviceId);
             openEditDeviceModal(deviceId);
+        }
+
+        // Laitteen poisto
+        const deleteButton = event.target.closest(".btn-delete-device");
+
+        if (deleteButton) {
+            const deviceId = Number(deleteButton.dataset.deviceId);
+            const data = getAppData();
+
+            const device = data.devices.find(
+                item => Number(item.id) === deviceId
+            );
+
+            if (!device) {
+                alert("Poistettavaa laitetta ei löytynyt.");
+                return;
+            }
+
+            const confirmed = confirm(
+                `Haluatko varmasti poistaa laitteen: ${device.vendor} ${device.model} (${device.serial})?`
+            );
+            if (!confirmed) return;
+
+
+                const updatedDevices = data.devices.filter(
+                    item => Number(item.id) !== deviceId
+                );
+
+                saveAppData("devices", updatedDevices);
+
+                // Päivitetään laitetaulukko heti.
+                filterDevices();
+                return;
         }
     });
 

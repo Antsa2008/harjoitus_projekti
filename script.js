@@ -473,7 +473,6 @@ function setupDeviceButtons() {
 
     if (!contentArea) return;
 
-    // Tapahtumankäsittely toimii myös uudelleen luoduille taulukkoriveille.
     contentArea.addEventListener("click", event => {
         const addButton = event.target.closest("#btn-add-device");
 
@@ -492,33 +491,28 @@ function setupDeviceButtons() {
         }
     });
 
-} // EI VARMA TARVIINKS, MUTTA JÄTETÄÄN TÄHÄN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Hakutekstin muuttuminen
+    contentArea.addEventListener("input", event => {
+        if (event.target.id === "device-search") {
+            filterDevices();
+        }
+    });
 
-  
-// Hakutekstin muuttuminen suodattaa laitteet reaaliaikaisesti.
-contentArea.addEventListener("input", event => {
-    if (event.target.id === "device-search") {
-        filterDevices();
-    }
-});
+    // Suodatinvalintojen muuttuminen
+    contentArea.addEventListener("change", event => {
+        if (
+            event.target.id === "device-type-filter" ||
+            event.target.id === "device-status-filter"
+        ) {
+            filterDevices();
+        }
+    });
 
-// Valintalistojen muuttuminen suodattaa laitteet reaaliaikaisesti.
-contentArea.addEventListener("change", event => {
-    if (
-        event.target.id === "device-type-filter" ||
-        event.target.id === "device-status-filter"
-    ) {
-        filterDevices();
-    }
-});
+    // Suodattimien tyhjentäminen
+    contentArea.addEventListener("click", event => {
+        const clearButton = event.target.closest("#btn-reset-filters");
 
-// Tyhjennetään hakuteksti ja molemmat suodattimet
-contentArea.addEventListener("click", event => {
-    const clearButton = event.target.closest(
-        "#btn-reset-filters"
-    );
-
-    if (!clearButton) return;
+        if (!clearButton) return;
 
         const searchInput = document.getElementById("device-search");
         const typeFilter = document.getElementById("device-type-filter");
@@ -529,9 +523,8 @@ contentArea.addEventListener("click", event => {
         if (statusFilter) statusFilter.value = "";
 
         filterDevices();
-    }
-}); //ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+    });
+}
 
 // ==========================================
 // LOMAKKEEN TÄYTTÄMINEN MUOKKAUSTA VARTEN

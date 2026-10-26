@@ -336,12 +336,137 @@ function renderDevicesView(container, devices) {
     //Näytetään kaikki laitteet näkymän avautuessa
     renderDeviceTableRows(devices);
 }   
-    
-// ==========================================
-// JATKA TÄSTÄ TIISTAINA 27.10.2026
-// ==========================================
-                
-      
+  
+
+/* Tulostaa laitteet taulukkoon. */
+function renderDeviceTableRows(devices) {
+    const tbody = document.getElementById("device-table-body");
+
+    if (!tbody) return;
+
+    const countElement = document.getElementById(
+        "device-result-count"
+    );
+
+    const alldevices = getAppData().devices;
+
+    if (countElement) {
+        countElement.textContent =
+            `Näytetään ${devices.length} / ${alldevices.length} laitetta.`;
+    }
+
+    if (devices.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7"
+                    class="text-center text-muted py-4">
+                    Hakuehdoilla ei löytynyt laitteita.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = devices.map(device => {
+        let badgeColor = "bg-secondary";
+
+        if (device.status === "Käytössä") {
+            badgeColor = "bg-success";
+        } else if (device.status === "Varastossa") {
+            badgeColor = "bg-info text-dark";
+        } else if (device.status === "Huollossa") {
+            badgeColor = "bg-danger";
+        }
+
+        return `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(device.type)}</strong>
+                </td>
+
+                <td>
+                    ${escapeHtml(device.vendor)}
+                    ${escapeHtml(device.model)}
+                </td>
+
+                <td>
+                    <code class="text-dark">
+                        ${escapeHtml(device.serial)}
+                    </code>
+                </td>
+
+                <td>
+                    ${device.user
+                        ? escapeHtml(device.user)
+                        : '<span class="text-muted">Ei käyttäjää</span>'}
+                </td>
+
+                <td>
+                    <span class="badge ${badgeColor}">
+                        ${escapeHtml(device.status)}
+                    </span>
+                </td>
+
+                <td>
+                    ${escapeHtml(device.warrantyEnd || "-")}
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary
+                                py-0 px-2 btn-edit-device"
+                        data-device-id="${escapeHtml(device.id)}">
+                        Muokkaa
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+/* Suodattaa laitteet hakutekstin ja valintojen perusteella. */
+
+function filterDevices() {
+    const searchInput = document.getElementById("device-search");
+    const typeFilter = document.getElementById("device-type-filter");
+    const statusFilter = document.getElementById("device-status-filter");
+
+    if (!searchInput || !typeFilter || !statusFilter) return;
+
+    const searchTerm = searchInput.value.trim().toLocaleLowerCase("fi");
+    const selectedType = typeFilter.value;
+    const selectedStatus = statusFilter.value;
+
+    const allDevices = getAppData().devices;
+
+    const filteredDevices = allDevices.filter(device => {   
+        // Haetaan useasta kentästä yhdellä hakusanalla.
+        const searchableText = [
+            device.type,
+            device.vendor,
+            device.model,
+            device.serial,
+            device.user
+        ]
+            .map(value => String(value ?? ""))
+            .join(" ")
+            .toLocaleLowerCase("fi");
+
+        const matchesSearch = 
+            searchableText.includes(searchTerm);
+
+        const matchesType = 
+            !selectedType || device.type === selectedType;
+
+        const matchesStatus = 
+            !selectedStatus || device.status === selectedStatus;
+
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
+    renderDeviceTableRows(filteredDevices);
+}
 
 function setupDeviceButtons() {
     const contentArea = document.getElementById("app-content");
@@ -366,7 +491,47 @@ function setupDeviceButtons() {
             openEditDeviceModal(deviceId);
         }
     });
-}
+
+} // EI VARMA TARVIINKS, MUTTA JÄTETÄÄN TÄHÄN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  
+// Hakutekstin muuttuminen suodattaa laitteet reaaliaikaisesti.
+contentArea.addEventListener("input", event => {
+    if (event.target.id === "device-search") {
+        filterDevices();
+    }
+});
+
+// Valintalistojen muuttuminen suodattaa laitteet reaaliaikaisesti.
+contentArea.addEventListener("change", event => {
+    if (
+        event.target.id === "device-type-filter" ||
+        event.target.id === "device-status-filter"
+    ) {
+        filterDevices();
+    }
+});
+
+// Tyhjennetään hakuteksti ja molemmat suodattimet
+contentArea.addEventListener("click", event => {
+    const clearButton = event.target.closest(
+        "#btn-reset-filters"
+    );
+
+    if (!clearButton) return;
+
+        const searchInput = document.getElementById("device-search");
+        const typeFilter = document.getElementById("device-type-filter");
+        const statusFilter = document.getElementById("device-status-filter");
+
+        if (searchInput) searchInput.value = "";
+        if (typeFilter) typeFilter.value = "";
+        if (statusFilter) statusFilter.value = "";
+
+        filterDevices();
+    }
+}); //ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 // ==========================================
 // LOMAKKEEN TÄYTTÄMINEN MUOKKAUSTA VARTEN

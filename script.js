@@ -412,13 +412,21 @@ function renderDeviceTableRows(devices) {
                 </td>
 
                 <td>
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-primary
-                                py-0 px-2 btn-edit-device"
-                        data-device-id="${escapeHtml(device.id)}">
-                        Muokkaa
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-device"
+                            data-device-id="${escapeHtml(device.id)}">
+                            Muokkaa
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger py-0 px-2 btn-delete-device"
+                            data-device-id="${escapeHtml(device.id)}">
+                            Poista
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;

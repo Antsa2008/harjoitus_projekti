@@ -279,7 +279,7 @@ function renderDevicesView(container, devices) {
                         </select>
                     </div>
 
-                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
                         <label for="device-status-filter"
                                 class="form-label">
                             Laitteen tila:
@@ -296,7 +296,7 @@ function renderDevicesView(container, devices) {
 
                     <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <small id="device-result-count"
-                            class="text-muted">
+                            class="text-muted"
                             aria-live="polite">
                         </small>
 
@@ -315,7 +315,7 @@ function renderDevicesView(container, devices) {
         <div class="card shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light"></thead>
+                    <thead class="table-light">
                         <tr>
                             <th>Tyyppi</th>
                             <th>Malli</th>

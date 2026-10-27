@@ -57,6 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
     setupDeviceFormListener();
     setupDeviceButtons();
+    setupUserFormListener();
+    setupUserButtons();
+
 
     switchView("nav-dashboard");
 });

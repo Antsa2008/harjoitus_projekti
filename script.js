@@ -160,6 +160,47 @@ function switchView(viewID) {
             0
         );
 
+        // Näytetään seuraavan 30 päivän aikana erääntyvät lisensit.
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const reminderLimit = new Date(today);
+        reminderLimit.setDate(reminderLimit.getDate() + 30);
+
+        const upcomingRenewals = data.licenses
+            .filter(license => {
+                if (!license.renewalDate) return false;
+
+                const date = new Date(`${license.renewalDate}T00:00:00`);
+
+                return  (
+                    !Number.isNaN(date.getTime()) &&
+                    date >= today &&
+                    date <= reminderLimit
+                );
+
+            })
+            .sort((a, b) =>
+                a.renewalDate.localeCompare(b.renewalDate)
+            );
+
+        // Laitteet, joiden takuu pättyy seuraavan 30 päivän aikana.
+        const upcomingWarranties = data.devices
+            .filter(device => {
+                if (!device.warrantyEnd) return false;
+
+                const date = new Date(`{$device.warrantyEnd}T00:00:00`);
+
+                return (
+                    !Number.isNaN(date.getTime()) &&
+                    date >= today &&
+                    date <= reminderLimit
+                );
+            })
+            .sort((a, b) =>
+                a.warrantyEnd.localeCompare(b.warrantyEnd)
+            );
+            
         contentArea.innerHTML = `
             <h1 class="mb-4">Dashboard</h1>
 

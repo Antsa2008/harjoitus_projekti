@@ -7,6 +7,8 @@
 // null tarkoittaa uuden laitteen lisäämistä.
 let editingDeviceId = null;
 let editingUserId = null;
+
+let editingLicensesId = null;
 // ==========================================
 // DATAN HAKU JA TALLENNUS
 // ==========================================
@@ -56,11 +58,15 @@ document.addEventListener("DOMContentLoaded", () => {
     getAppData();
 
     setupNavigation();
+
     setupDeviceFormListener();
     setupDeviceButtons();
 
     setupUserFormListener();
     setupUserButtons();
+
+    setupLicenseFormListener();
+    setupLicenseButtons();
 
     switchView("nav-dashboard");
 });
@@ -212,13 +218,7 @@ function switchView(viewID) {
         renderUsersView(contentArea, data.users);
 
     } else if (viewID === "nav-licenses") {
-        contentArea.innerHTML = `
-            <h1>Lisenssit</h1>
-            <p>
-                Täällä pidetään kirjaa ohjelmistolisensseistä
-                (esim. Office 365, Adobe).
-            </p>
-        `;
+        renderLicensesView(contentArea, data.licenses);
     }
 
     contentArea.classList.remove("view-enter");

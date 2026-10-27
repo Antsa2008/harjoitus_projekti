@@ -6,7 +6,7 @@
 // Muistetaan, mitä laitetta ollaan muokkaamassa.
 // null tarkoittaa uuden laitteen lisäämistä.
 let editingDeviceId = null;
-
+let editingUserId = null;
 // ==========================================
 // DATAN HAKU JA TALLENNUS
 // ==========================================
@@ -54,12 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("IT Asset Management - sovellus käynnistetty!");
 
     getAppData();
+
     setupNavigation();
     setupDeviceFormListener();
     setupDeviceButtons();
+
     setupUserFormListener();
     setupUserButtons();
-
 
     switchView("nav-dashboard");
 });
@@ -208,10 +209,7 @@ function switchView(viewID) {
         renderDevicesView(contentArea, data.devices);
 
     } else if (viewID === "nav-users") {
-        contentArea.innerHTML = `
-            <h1>Käyttäjät</h1>
-            <p>Täällä hallinnoidaan työntekijöitä ja heidän laitteitaan.</p>
-        `;
+        renderUsersView(contentArea, data.users);
 
     } else if (viewID === "nav-licenses") {
         contentArea.innerHTML = `
@@ -754,6 +752,484 @@ function setupDeviceFormListener() {
 
         if (activeNavLink && activeNavLink.id === "nav-devices") {
             switchView("nav-devices");
+        } else {
+            switchView("nav-dashboard");
+        }
+    });
+}
+
+// ==========================================
+// KÄYTTÄJIEN HALLINTA
+// ==========================================
+function renderUsersView(container, users) {
+    container.innerHTML = `
+        <div class="d-flex justify-content-between
+                    align-items-center flex-wrap gap-3 mb-4">
+
+            <h1 class="mb-0">Käyttäjät</h1>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    id="btn-add-user"
+                    data-bs-toggle="modal"
+                    data-bs-target="#userModal">
+                + Lisää käyttäjä
+            </button>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+
+                <label for="user-search" class="form-label">
+                    Hae käyttäjiä
+                </label>
+
+                <input type="search"
+                       class="form-control"
+                       id="user-search"
+                       placeholder="Nimi, sähköposti, osasto tai tehtävä..."
+                       autocomplete="off">
+
+                <small id="user-result-count"
+                       class="text-muted d-block mt-3"
+                       aria-live="polite"></small>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nimi</th>
+                            <th>Sähköposti</th>
+                            <th>Osasto</th>
+                            <th>Tehtävänimike</th>
+                            <th>Laitteita</th>
+                            <th>Toiminnot</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="user-table-body"></tbody>
+
+                </table>
+            </div>
+        </div>
+    `;
+
+    renderUserTableRows(users);
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJIEN TAULUKKO
+// ------------------------------------------
+
+function renderUserTableRows(users) {
+    const tbody = document.getElementById("user-table-body");
+
+    if (!tbody) return;
+
+    const allUsers = getAppData().users;
+    const countElement = document.getElementById("user-result-count");
+
+    if (countElement) {
+        countElement.textContent =
+            `Näytetään ${users.length} / ${allUsers.length} käyttäjää.`;
+    }
+
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    Käyttäjiä ei löytynyt.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const devices = getAppData().devices;
+
+    tbody.innerHTML = users.map(user => {
+        // Nykyiset laitteet yhdistetään käyttäjään nimen perusteella.
+        const assignedDevices = devices.filter(device =>
+            device.user &&
+            String(device.user).trim().toLocaleLowerCase("fi") ===
+            String(user.name ?? "").trim().toLocaleLowerCase("fi")
+        );
+
+        return `
+            <tr>
+                <td>
+                    <strong>${escapeHtml(user.name)}</strong>
+                </td>
+
+                <td>
+                    <a href="mailto:${escapeHtml(user.email)}">
+                        ${escapeHtml(user.email)}
+                    </a>
+                </td>
+
+                <td>${escapeHtml(user.department)}</td>
+
+                <td>${escapeHtml(user.role)}</td>
+
+                <td>
+                    <span class="badge bg-secondary">
+                        ${assignedDevices.length}
+                    </span>
+                </td>
+
+                <td>
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary
+                                       btn-edit-user"
+                                data-user-id="${escapeHtml(user.id)}">
+                            Muokkaa
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger
+                                       btn-delete-user"
+                                data-user-id="${escapeHtml(user.id)}">
+                            Poista
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJIEN HAKU
+// ------------------------------------------
+
+function filterUsers() {
+    const searchInput = document.getElementById("user-search");
+
+    if (!searchInput) return;
+
+    const searchTerm =
+        searchInput.value.trim().toLocaleLowerCase("fi");
+
+    const users = getAppData().users;
+
+    const filteredUsers = users.filter(user => {
+        const searchableText = [
+            user.name,
+            user.email,
+            user.department,
+            user.role
+        ]
+            .map(value => String(value ?? ""))
+            .join(" ")
+            .toLocaleLowerCase("fi");
+
+        return searchableText.includes(searchTerm);
+    });
+
+    renderUserTableRows(filteredUsers);
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJIEN PAINIKKEET JA HAKU
+// ------------------------------------------
+
+function setupUserButtons() {
+    const contentArea = document.getElementById("app-content");
+
+    if (!contentArea) return;
+
+    contentArea.addEventListener("click", event => {
+
+        // Uusi käyttäjä
+        const addButton = event.target.closest("#btn-add-user");
+
+        if (addButton) {
+            editingUserId = null;
+            resetUserForm();
+            setUserModalMode(false);
+            return;
+        }
+
+        // Käyttäjän muokkaus
+        const editButton = event.target.closest(".btn-edit-user");
+
+        if (editButton) {
+            openEditUserModal(Number(editButton.dataset.userId));
+            return;
+        }
+
+        // Käyttäjän poisto
+        const deleteButton = event.target.closest(".btn-delete-user");
+
+        if (deleteButton) {
+            deleteUser(Number(deleteButton.dataset.userId));
+        }
+    });
+
+    // Hakutekstin muuttuminen
+    contentArea.addEventListener("input", event => {
+        if (event.target.id === "user-search") {
+            filterUsers();
+        }
+    });
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJÄN POISTAMINEN
+// ------------------------------------------
+
+function deleteUser(userId) {
+    const data = getAppData();
+
+    const user = data.users.find(
+        item => Number(item.id) === userId
+    );
+
+    if (!user) {
+        alert("Poistettavaa käyttäjää ei löytynyt.");
+        return;
+    }
+
+    // Estetään poistaminen, jos käyttäjällä on laitteita.
+    const assignedDevices = data.devices.filter(device =>
+        device.user &&
+        String(device.user).trim().toLocaleLowerCase("fi") ===
+        String(user.name ?? "").trim().toLocaleLowerCase("fi")
+    );
+
+    if (assignedDevices.length > 0) {
+        alert(
+            `Käyttäjää ei voi poistaa, koska hänellä on ` +
+            `${assignedDevices.length} laitetta liitettynä.\n\n` +
+            `Siirrä laitteet ensin toiselle käyttäjälle tai poista ` +
+            `niiden käyttäjämerkintä.`
+        );
+        return;
+    }
+
+    const confirmed = confirm(
+        `Haluatko varmasti poistaa käyttäjän ${user.name}?`
+    );
+
+    if (!confirmed) return;
+
+    const updatedUsers = data.users.filter(
+        item => Number(item.id) !== userId
+    );
+
+    saveAppData("users", updatedUsers);
+
+    // Päivitetään käyttäjälista heti.
+    filterUsers();
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJÄN MUOKKAUS
+// ------------------------------------------
+
+function openEditUserModal(userId) {
+    const users = getAppData().users;
+
+    const user = users.find(
+        item => Number(item.id) === userId
+    );
+
+    if (!user) {
+        alert("Käyttäjää ei löytynyt.");
+        return;
+    }
+
+    editingUserId = user.id;
+
+    document.getElementById("user-name").value =
+        user.name || "";
+
+    document.getElementById("user-email").value =
+        user.email || "";
+
+    document.getElementById("user-department").value =
+        user.department || "";
+
+    document.getElementById("user-role").value =
+        user.role || "";
+
+    setUserModalMode(true);
+
+    const modalElement = document.getElementById("userModal");
+
+    if (!modalElement || typeof bootstrap === "undefined") {
+        alert("Käyttäjän muokkausikkunaa ei voitu avata.");
+        return;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+}
+
+
+// ------------------------------------------
+// MODALIN OTSIKKO JA LOMAKKEEN TYHJENNYS
+// ------------------------------------------
+
+function setUserModalMode(isEditing) {
+    const title = document.getElementById("userModalLabel");
+
+    const submitButton = document.querySelector(
+        "#form-user button[type='submit']"
+    );
+
+    if (title) {
+        title.textContent = isEditing
+            ? "Muokkaa käyttäjää"
+            : "Lisää uusi käyttäjä";
+    }
+
+    if (submitButton) {
+        submitButton.textContent = isEditing
+            ? "Tallenna muutokset"
+            : "Tallenna käyttäjä";
+    }
+}
+
+
+function resetUserForm() {
+    const form = document.getElementById("form-user");
+
+    if (form) form.reset();
+}
+
+
+// ------------------------------------------
+// KÄYTTÄJÄN LISÄYS JA MUOKKAUS
+// ------------------------------------------
+
+function setupUserFormListener() {
+    const form = document.getElementById("form-user");
+
+    if (!form) {
+        console.error("Käyttäjälomaketta ei löytynyt.");
+        return;
+    }
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const data = getAppData();
+
+        const userValues = {
+            name: document.getElementById("user-name").value.trim(),
+            email: document.getElementById("user-email").value.trim(),
+            department: document.getElementById("user-department").value.trim(),
+            role: document.getElementById("user-role").value.trim()
+        };
+
+        // Sähköpostiosoitteen on oltava yksilöllinen.
+        const duplicateEmail = data.users.some(user =>
+            String(user.email ?? "").trim().toLowerCase() ===
+                userValues.email.toLowerCase() &&
+            Number(user.id) !== Number(editingUserId)
+        );
+
+        if (duplicateEmail) {
+            alert("Tällä sähköpostiosoitteella on jo käyttäjä.");
+            return;
+        }
+
+        // Nimen on oltava yksilöllinen, koska nykyiset laitteet
+        // yhdistetään käyttäjiin nimen perusteella.
+        const duplicateName = data.users.some(user =>
+            String(user.name ?? "").trim().toLocaleLowerCase("fi") ===
+                userValues.name.toLocaleLowerCase("fi") &&
+            Number(user.id) !== Number(editingUserId)
+        );
+
+        if (duplicateName) {
+            alert("Tällä nimellä on jo rekisteröity käyttäjä.");
+            return;
+        }
+
+        if (editingUserId !== null) {
+            // Päivitetään olemassa oleva käyttäjä.
+            const index = data.users.findIndex(
+                user => Number(user.id) === Number(editingUserId)
+            );
+
+            if (index === -1) {
+                alert("Muokattavaa käyttäjää ei löytynyt.");
+                return;
+            }
+
+            const oldName = data.users[index].name;
+
+            // Jos nimi muuttuu, päivitetään myös laitteiden
+            // käyttäjämerkinnät, jotta yhteys säilyy.
+            data.devices = data.devices.map(device => {
+                if (
+                    device.user &&
+                    String(device.user).trim().toLocaleLowerCase("fi") ===
+                    String(oldName ?? "").trim().toLocaleLowerCase("fi")
+                ) {
+                    return {
+                        ...device,
+                        user: userValues.name
+                    };
+                }
+
+                return device;
+            });
+
+            data.users[index] = {
+                ...data.users[index],
+                ...userValues
+            };
+
+            saveAppData("devices", data.devices);
+            saveAppData("users", data.users);
+
+        } else {
+            // Luodaan uusi käyttäjä.
+            const newUser = {
+                id: Date.now(),
+                ...userValues
+            };
+
+            data.users.push(newUser);
+            saveAppData("users", data.users);
+        }
+
+        // Suljetaan modal ja palautetaan lomake alkutilaan.
+        const modalElement = document.getElementById("userModal");
+
+        if (modalElement && typeof bootstrap !== "undefined") {
+            bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        }
+
+        form.reset();
+
+        editingUserId = null;
+        setUserModalMode(false);
+
+        // Päivitetään aktiivinen näkymä.
+        const activeNavLink = document.querySelector(
+            ".nav-links a.active"
+        );
+
+        if (activeNavLink && activeNavLink.id === "nav-users") {
+            switchView("nav-users");
         } else {
             switchView("nav-dashboard");
         }

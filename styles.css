@@ -197,3 +197,47 @@ h1 {
         width: 100%;
     }
 }
+
+/* ==========================================
+   KÄYTTÄJIEN HALLINTA
+   ========================================== */
+
+#user-search {
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1e293b;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+#user-search:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    outline: none;
+}
+
+#user-search::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+#user-table-body td {
+    vertical-align: middle;
+}
+
+#user-table-body a {
+    color: #0369a1;
+    text-decoration: none;
+}
+
+#user-table-body a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    #user-table-body .btn {
+        margin-bottom: 4px;
+    }
+}

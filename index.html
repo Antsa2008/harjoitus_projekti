@@ -30,11 +30,11 @@
     <!-- ======================================================= -->
     <!-- VAIHE 1: MODAL-IKKUNA UUDEN LAITTEEN LISÄÄMISEEN       -->
     <!-- ======================================================= -->
-    <div class="modal fade" id="addDeviceModal" tabindex="-1" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addDeviceModal" tabindex="-1" role="dialog" aria-labelledby="addDeviceModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="addDeviceModalLabel">Lisää uusi IT-laite</h5>
+                    <h2 class="modal-title" id="addDeviceModalLabel">Lisää uusi IT-laite</h2>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Sulje"></button>
                 </div>
                 <div class="modal-body">
@@ -76,6 +76,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="device-status" class="form-label">Tila *</label>
                                 <select class="form-select" id="device-status" required>
+                                    <option value="" disabled>Valitse tila...</option>
                                     <option value="Käytössä">Käytössä</option>
                                     <option value="Varastossa" selected>Varastossa</option>
                                     <option value="Huollossa">Huollossa</option>

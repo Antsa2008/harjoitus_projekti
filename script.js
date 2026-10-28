@@ -189,7 +189,7 @@ function switchView(viewID) {
             .filter(device => {
                 if (!device.warrantyEnd) return false;
 
-                const date = new Date(`{$device.warrantyEnd}T00:00:00`);
+                const date = new Date(`${device.warrantyEnd}T00:00:00`);
 
                 return (
                     !Number.isNaN(date.getTime()) &&
@@ -250,6 +250,69 @@ function switchView(viewID) {
                     </div>
                 </div>
             </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0">Lähestyvät takuun päättymiset</h2>
+                        </div>
+                        <div class="card-body">
+                            ${
+                                upcomingWarranties.length === 0
+                                    ? '<p class="text-muted mb-0">Ei lähestyviä takuun päättymisiä seuraavan 30 päivän aikana.</p>'
+                                    : `
+                                        <ul class="list-group lst-group-flush">
+                                            ${upcomingWarranties.map(device => `
+                                                <li class="list-group-item px-o">
+                                                    <strong>${escapeHtml(device.vendor)}
+            ${escapeHtml(device.model)}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        Sarjanumero:
+            ${escapeHtml(device.serial)}
+                                                        · Takuu päättyy:
+            ${escapeHtml(device.warrantyEnd)} 
+                                                    </small>
+                                                </li>
+                                            `)}.join("")}
+                                        </ul>
+                                    `
+                                    
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0">Lähestyvät lisenssien uusimiset</h2>
+                        </div>
+                        <div class="card-body">
+                            ${
+                                upcomingRenewals-length === 0
+                                    ? '<p class="text-muted mb-0">Ei lähestyviä lisenssien uusimisia seuraavan 30 päivän aikana</p>'
+                                    : `
+                                        <ul class="list-group list-group-flush">
+                                            ${upcomingRenewals.map(license => `)}
+                                                < class="list-group-item px-0">
+                                                    <strong>${escapeHtml(license.name)}
+            </strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        Uusimispäivä:
+            ${escapeHtml(license.renewalDate)}
+                                                    </small>
+                                                </li>
+                                            `).join("")}
+                                        </ul>
+                                    `
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         `;
 
     } else if (viewID === "nav-devices") {

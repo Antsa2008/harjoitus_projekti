@@ -1377,13 +1377,72 @@ function setupUserFormListener() {
                             <th>Toiminnot</th>
                         </tr>
                     </thead>
-                    <tbody id="user-table-body"></tbody>
+                    <tbody id="license-table-body"></tbody>
                 </table>
             </div>
         </div>
     `;
 
     renderLicenseTableRows(licenses);
+}
+
+    function renderLicenseTableRows(licenses) {
+        const tbody = document.getElementById("license-table-body");
+
+        if (!tbody) return;
+
+        if (licenses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        Lisenssejä ei löytynyt.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+    tbody.innerHTML = licenses.map(license => {
+        const total = Number(license.total || 0);
+        const used = Number(license.used || 0);
+        const free = total - used; 
+
+        return `
+            <tr>
+                <td><strong>${escapeHtml(license.name)}</strong></td>
+                <td>${escapeHtml(license.vendor || "-")}</td>
+                <td>${total}</td>
+                <td>${used}</td>
+                <td>
+                    <span class>"badge ${free > 0 ? "bg-succes" : "bg-danger"}>
+                        ${free}
+                    </span>
+                </td>
+                <td>${escapeHtml(license.renewalDate || "-")}</td>
+                <td>${Number(license.cost || 0).toLocaleString("fi-FI", {
+                    style: "currency",
+                    currency: "EUR"
+                })}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button>
+                            type="button"
+                            class="btn btn-sm btn-outline-primary btn-edit-license"
+                            data-license-id="${escapeHtml(license.id)}">
+                            Muokkaa
+                        </button>
+
+                        <button>
+                            type="button"
+                            class="btn btn-sm btn-outline-danger btn-delete-license"
+                            data-license-id="${escapeHtml(license.id)}">
+                            Poista
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
 }
 
 // Lisenssitaulukon päivitys

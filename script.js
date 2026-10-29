@@ -261,9 +261,9 @@ function switchView(viewID) {
                                 upcomingWarranties.length === 0
                                     ? '<p class="text-muted mb-0">Ei lähestyviä takuun päättymisiä seuraavan 30 päivän aikana.</p>'
                                     : `
-                                        <ul class="list-group lst-group-flush">
+                                        <ul class="list-group list-group-flush">
                                             ${upcomingWarranties.map(device => `
-                                                <li class="list-group-item px-o">
+                                                <li class="list-group-item px-0">
                                                     <strong>${escapeHtml(device.vendor)}
             ${escapeHtml(device.model)}</strong>
                                                     <br>
@@ -274,7 +274,7 @@ function switchView(viewID) {
             ${escapeHtml(device.warrantyEnd)} 
                                                     </small>
                                                 </li>
-                                            `)}.join("")}
+                                            `).join("")}
                                         </ul>
                                     `
                                     
@@ -290,14 +290,13 @@ function switchView(viewID) {
                         </div>
                         <div class="card-body">
                             ${
-                                upcomingRenewals-length === 0
+                                upcomingRenewals.length === 0
                                     ? '<p class="text-muted mb-0">Ei lähestyviä lisenssien uusimisia seuraavan 30 päivän aikana</p>'
                                     : `
                                         <ul class="list-group list-group-flush">
-                                            ${upcomingRenewals.map(license => `)}
-                                                < class="list-group-item px-0">
-                                                    <strong>${escapeHtml(license.name)}
-            </strong>
+                                            ${upcomingRenewals.map(license => `
+                                                <li class="list-group-item px-0">
+                                                    <strong>${escapeHtml(license.name)}</strong>
                                                     <br>
                                                     <small class="text-muted">
                                                         Uusimispäivä:
@@ -1414,7 +1413,7 @@ function setupUserFormListener() {
                 <td>${total}</td>
                 <td>${used}</td>
                 <td>
-                    <span class>"badge ${free > 0 ? "bg-succes" : "bg-danger"}>
+                    <span class="badge ${free > 0 ? "bg-success" : "bg-danger"}>
                         ${free}
                     </span>
                 </td>
@@ -1425,14 +1424,14 @@ function setupUserFormListener() {
                 })}</td>
                 <td>
                     <div class="d-flex gap-2">
-                        <button>
+                        <button
                             type="button"
                             class="btn btn-sm btn-outline-primary btn-edit-license"
                             data-license-id="${escapeHtml(license.id)}">
                             Muokkaa
                         </button>
 
-                        <button>
+                        <button
                             type="button"
                             class="btn btn-sm btn-outline-danger btn-delete-license"
                             data-license-id="${escapeHtml(license.id)}">

@@ -160,6 +160,47 @@ function switchView(viewID) {
             0
         );
 
+        // Näytetään seuraavan 30 päivän aikana erääntyvät lisensit.
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const reminderLimit = new Date(today);
+        reminderLimit.setDate(reminderLimit.getDate() + 30);
+
+        const upcomingRenewals = data.licenses
+            .filter(license => {
+                if (!license.renewalDate) return false;
+
+                const date = new Date(`${license.renewalDate}T00:00:00`);
+
+                return  (
+                    !Number.isNaN(date.getTime()) &&
+                    date >= today &&
+                    date <= reminderLimit
+                );
+
+            })
+            .sort((a, b) =>
+                a.renewalDate.localeCompare(b.renewalDate)
+            );
+
+        // Laitteet, joiden takuu pättyy seuraavan 30 päivän aikana.
+        const upcomingWarranties = data.devices
+            .filter(device => {
+                if (!device.warrantyEnd) return false;
+
+                const date = new Date(`${device.warrantyEnd}T00:00:00`);
+
+                return (
+                    !Number.isNaN(date.getTime()) &&
+                    date >= today &&
+                    date <= reminderLimit
+                );
+            })
+            .sort((a, b) =>
+                a.warrantyEnd.localeCompare(b.warrantyEnd)
+            );
+            
         contentArea.innerHTML = `
             <h1 class="mb-4">Dashboard</h1>
 
@@ -209,6 +250,68 @@ function switchView(viewID) {
                     </div>
                 </div>
             </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0">Lähestyvät takuun päättymiset</h2>
+                        </div>
+                        <div class="card-body">
+                            ${
+                                upcomingWarranties.length === 0
+                                    ? '<p class="text-muted mb-0">Ei lähestyviä takuun päättymisiä seuraavan 30 päivän aikana.</p>'
+                                    : `
+                                        <ul class="list-group list-group-flush">
+                                            ${upcomingWarranties.map(device => `
+                                                <li class="list-group-item px-0">
+                                                    <strong>${escapeHtml(device.vendor)}
+            ${escapeHtml(device.model)}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        Sarjanumero:
+            ${escapeHtml(device.serial)}
+                                                        · Takuu päättyy:
+            ${escapeHtml(device.warrantyEnd)} 
+                                                    </small>
+                                                </li>
+                                            `).join("")}
+                                        </ul>
+                                    `
+                                    
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0">Lähestyvät lisenssien uusimiset</h2>
+                        </div>
+                        <div class="card-body">
+                            ${
+                                upcomingRenewals.length === 0
+                                    ? '<p class="text-muted mb-0">Ei lähestyviä lisenssien uusimisia seuraavan 30 päivän aikana</p>'
+                                    : `
+                                        <ul class="list-group list-group-flush">
+                                            ${upcomingRenewals.map(license => `
+                                                <li class="list-group-item px-0">
+                                                    <strong>${escapeHtml(license.name)}</strong>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        Uusimispäivä:
+            ${escapeHtml(license.renewalDate)}
+                                                    </small>
+                                                </li>
+                                            `).join("")}
+                                        </ul>
+                                    `
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         `;
 
     } else if (viewID === "nav-devices") {
@@ -1230,6 +1333,341 @@ function setupUserFormListener() {
 
         if (activeNavLink && activeNavLink.id === "nav-users") {
             switchView("nav-users");
+        } else {
+            switchView("nav-dashboard");
+        }
+    });
+}
+
+/* ==========================================
+   OHJELMISTOLISENSSIEN HALLINTA
+   ========================================== */
+
+   function renderLicensesView(container, licenses) {
+    container.innerHTML = `
+        <div class="d-flex justify-content-between
+                    align-items-center flex-wrap gap-3 mb-4">
+
+            <h1 class="mb-0">Ohjelmistolisenssit</h1>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    id="btn-add-license"
+                    data-bs-toggle="modal"
+                    data-bs-target="#licenseModal">
+                + Lisää lisenssi
+            </button>
+        </div>
+
+        <div class="row g-3 mb-4" id="license-summary"></div>
+
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ohjelmisto</th>
+                            <th>Toimittaja</th>
+                            <th>Lisenssejä</th>
+                            <th>Käytössä</th>
+                            <th>Vapaana</th>
+                            <th>Uusimispäivä</th>
+                            <th>Kustannus</th>
+                            <th>Toiminnot</th>
+                        </tr>
+                    </thead>
+                    <tbody id="license-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    renderLicenseTableRows(licenses);
+}
+
+    function renderLicenseTableRows(licenses) {
+        const tbody = document.getElementById("license-table-body");
+
+        if (!tbody) return;
+
+        if (licenses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        Lisenssejä ei löytynyt.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+    tbody.innerHTML = licenses.map(license => {
+        const total = Number(license.total || 0);
+        const used = Number(license.used || 0);
+        const free = total - used; 
+
+        return `
+            <tr>
+                <td><strong>${escapeHtml(license.name)}</strong></td>
+                <td>${escapeHtml(license.vendor || "-")}</td>
+                <td>${total}</td>
+                <td>${used}</td>
+                <td>
+                    <span class="badge ${free > 0 ? "bg-success" : "bg-danger"}>
+                        ${free}
+                    </span>
+                </td>
+                <td>${escapeHtml(license.renewalDate || "-")}</td>
+                <td>${Number(license.cost || 0).toLocaleString("fi-FI", {
+                    style: "currency",
+                    currency: "EUR"
+                })}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-primary btn-edit-license"
+                            data-license-id="${escapeHtml(license.id)}">
+                            Muokkaa
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger btn-delete-license"
+                            data-license-id="${escapeHtml(license.id)}">
+                            Poista
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+// Lisenssitaulukon päivitys
+function setupLicenseButtons() {
+    const contentArea = document.getElementById("app-content");
+    if (!contentArea) return;
+
+    contentArea.addEventListener("click", event => {
+        const addButton = event.target.closest("#btn-add-license");
+
+        if (addButton) {
+            editingLicensesId = null;
+            resetLicenseForm();
+            setLicenseModalMode(false);
+            return;
+        }
+
+        const editButton = event.target.closest(".btn-edit-license");
+
+        if (editButton) {
+            openEditLicenseModal(Number(editButton.dataset.licenseId));
+            return;
+        }
+
+        const deleteButton = event.target.closest(".btn-delete-license");
+
+        if (deleteButton) {
+            deleteLicense(Number(deleteButton.dataset.licenseId));
+        }
+    });
+}
+
+// Lomakkeen tyhjennys
+function resetLicenseForm() {
+    const form = document.getElementById("form-license");
+    if (form) form.reset();
+
+    const totalInput = document.getElementById("license-total");
+    const usedInput = document.getElementById("license-used");
+
+    if (totalInput) totalInput.value = "1";
+    if (usedInput) usedInput.value = "0";
+}
+
+// Modalin otsikko ja tallennuspainike
+function setLicenseModalMode(isEditing) {
+    const title = document.getElementById("licenseModalLabel");
+    const submitButton = document.querySelector(
+        "#form-license button[type='submit']"
+    );
+
+    if (title) {
+        title.textContent = isEditing
+            ? "Muokkaa ohjelmistolisenssiä"
+            : "Lisää ohjelmistolisenssi";
+    }
+
+    if (submitButton) {
+        submitButton.textContent = isEditing
+            ? "Tallenna muutokset"
+            : "Tallenna lisenssi";
+    }
+}
+
+// Lisenssin muokkauslomakkeen avaaminen
+function openEditLicenseModal(licenseId) {
+    const licenses = getAppData().licenses;
+
+    const license = licenses.find(
+        item => Number(item.id) === licenseId
+    );
+
+    if (!license) {
+        alert("Muokattavaa lisenssiä ei löytynyt.");
+        return;
+    }
+
+    editingLicensesId = license.id;
+
+    document.getElementById("license-name").value =
+        license.name || "";
+    document.getElementById("license-vendor").value =
+        license.vendor || "";
+    document.getElementById("license-total").value =
+        license.total ?? 1;
+    document.getElementById("license-used").value =
+        license.used ?? 0;
+    document.getElementById("license-renewal").value =
+        license.renewalDate || "";
+    document.getElementById("license-cost").value =
+        license.cost ?? "";
+
+    setLicenseModalMode(true);
+
+    const modalElement = document.getElementById("licenseModal");
+
+    if (!modalElement || typeof bootstrap === "undefined") {
+        alert("Lisenssin muokkausikkunaa ei voitu avata.");
+        return;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+}
+
+// Lisenssin poistaminen
+function deleteLicense(licenseId) {
+    const data = getAppData();
+
+    const license = data.licenses.find(
+        item => Number(item.id) === licenseId
+    );
+
+    if (!license) {
+        alert("Poistettavaa lisenssiä ei löytynyt.");
+        return;
+    }
+
+    if (!confirm(`Haluatko varmasti poistaa lisenssin ${license.name}?`)) {
+        return;
+    }
+
+    data.licenses = data.licenses.filter(
+        item => Number(item.id) !== licenseId
+    );
+
+    saveAppData("licenses", data.licenses);
+
+    switchView("nav-licenses");
+}
+
+// Lisenssin lisääminen ja muokkaaminen
+function setupLicenseFormListener() {
+    const form = document.getElementById("form-license");
+    if (!form) {
+        console.error("Lisenssilomaketta ei löytynyt.");
+        return;
+    }
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const data = getAppData();
+
+        const total = Number(
+            document.getElementById("license-total").value
+        );
+        const used = Number(
+            document.getElementById("license-used").value
+        );
+
+        if (!Number.isInteger(total) || total < 1) {
+            alert("Lisenssien kokonaismäärän on oltava vähintään 1.");
+            return;
+        }
+
+        if (!Number.isInteger(used) || used < 0) {
+            alert("Käytössä olevien lisenssien määrän on oltava vähintään 0.");
+            return;
+        }
+
+        if (used > total) {
+            alert("Käytössä olevien lisenssien määrä ei voi ylittää kokonaismäärää.");
+            return;
+        }
+
+        const costValue = document.getElementById("license-cost").value;
+        const cost = costValue === "" ? 0 : Number(costValue);
+
+        if (!Number.isFinite(cost) || cost < 0) {
+            alert("Kustannuksen on oltava kelvollinen, nollaa suurempi tai nolla.");
+            return;
+        }
+
+        const licenseValues = {
+            name: document.getElementById("license-name").value.trim(),
+            vendor: document.getElementById("license-vendor").value.trim(),
+            total,
+            used,
+            renewalDate: document.getElementById("license-renewal").value,
+            cost
+        };
+
+        if (editingLicensesId !== null) {
+            const index = data.licenses.findIndex(
+                item => Number(item.id) === Number(editingLicensesId)
+            );
+
+            if (index === -1) {
+                alert("Muokattavaa lisenssiä ei löytynyt.");
+                return;
+            }
+
+            data.licenses[index] = {
+                ...data.licenses[index],
+                ...licenseValues
+            };
+        } else {
+            data.licenses.push({
+                id: Date.now(),
+                ...licenseValues
+            });
+        }
+
+        saveAppData("licenses", data.licenses);
+
+        const modalElement = document.getElementById("licenseModal");
+
+        if (modalElement && typeof bootstrap !== "undefined") {
+            bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        }
+
+        resetLicenseForm();
+        editingLicensesId = null;
+        setLicenseModalMode(false);
+
+        const activeNavLink = document.querySelector(
+            ".nav-links a.active"
+        );
+
+        if (activeNavLink && activeNavLink.id === "nav-licenses") {
+            switchView("nav-licenses");
         } else {
             switchView("nav-dashboard");
         }

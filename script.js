@@ -1,14 +1,9 @@
-// ==========================================
-// MOCK-DATA JA LOCALSTORAGE ALUSTUS
-// ==========================================
-
-
 // Muistetaan, mitä laitetta ollaan muokkaamassa.
 // null tarkoittaa uuden laitteen lisäämistä.
 let editingDeviceId = null;
 let editingUserId = null;
-
 let editingLicensesId = null;
+
 // ==========================================
 // DATAN HAKU JA TALLENNUS
 // ==========================================
@@ -1415,7 +1410,7 @@ function setupUserFormListener() {
         let freeBadgeClass = "bg-success";
 
         if (free <= 0) {
-            let freeBadgeClass = "bg-danger"
+            freeBadgeClass = "bg-danger"
         }
 
         return `
@@ -1449,7 +1444,7 @@ function setupUserFormListener() {
                 <td>
                     ${formattedCost}
                 </td>
-                
+
                 <td>
                     <div class="d-flex gap-2">
                         <button

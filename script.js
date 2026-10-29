@@ -1405,23 +1405,51 @@ function setupUserFormListener() {
         const total = Number(license.total || 0);
         const used = Number(license.used || 0);
         const free = total - used; 
+        const cost  = Number(license.cost || 0)
+
+        const formattedCost = cost.toLocaleString("fi-FI", {
+            style: "currency",
+            currency: "EUR"
+        });
+
+        let freeBadgeClass = "bg-success";
+
+        if (free <= 0) {
+            let freeBadgeClass = "bg-danger"
+        }
 
         return `
             <tr>
-                <td><strong>${escapeHtml(license.name)}</strong></td>
-                <td>${escapeHtml(license.vendor || "-")}</td>
-                <td>${total}</td>
-                <td>${used}</td>
                 <td>
-                    <span class="badge ${free > 0 ? "bg-success" : "bg-danger"}>
+                    <strong>${escapeHtml(license.name)}</strong>
+                </td>
+
+                <td>
+                    ${escapeHtml(license.vendor || "-")}
+                </td>
+
+                <td>
+                    ${total}
+                </td>
+
+                <td>
+                    ${used}
+                </td>
+
+                <td>
+                    <span class="badge ${freeBadgeClass}">
                         ${free}
                     </span>
                 </td>
-                <td>${escapeHtml(license.renewalDate || "-")}</td>
-                <td>${Number(license.cost || 0).toLocaleString("fi-FI", {
-                    style: "currency",
-                    currency: "EUR"
-                })}</td>
+
+                <td>
+                    ${escapeHtml(license.renewalDate || "-")}
+                </td>
+
+                <td>
+                    ${formattedCost}
+                </td>
+                
                 <td>
                     <div class="d-flex gap-2">
                         <button

@@ -1,0 +1,243 @@
+/* Yleiset tyylit */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Yläpalkki */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e293b;
+    padding: 1rem 2rem;
+    color: white;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Navigaatio */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 0;
+    position: relative;
+    align-items: center;
+}
+
+/* Liukuva sininen slider-tausta */
+.nav-links::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: var(--slider-left, 0px);
+    width: var(--slider-width, 0px);
+    height: 100%;
+    background-color: #38bdf8;
+    border-radius: 8px;
+    transition:
+        left 0.3s ease,
+        width 0.3s ease;
+    pointer-events: none;
+}
+
+.nav-links li {
+    position: relative;
+    z-index: 1;
+}
+
+/* Navigaatiolinkit */
+.nav-links a {
+    display: block;
+    padding: 0.65rem 1rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: color 0.3s ease;
+}
+
+/* Aktiivinen linkki */
+.nav-links a.active {
+    color: #0f172a;
+}
+
+/* Hiiren hover-efekti */
+.nav-links a:hover:not(.active) {
+    color: white;
+}
+
+/* Pääsisältö */
+main {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+/* Sisällön liukuva animaatio */
+@keyframes slideInContent {
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+#app-content.view-enter {
+    animation: slideInContent 0.3s ease-out;
+}
+
+/* Responsiivisuus puhelimille ja tableteille */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+}
+
+/* ==========================================
+   LAITTEIDEN HAKU JA SUODATUS
+   ========================================== */
+
+#device-search,
+#device-type-filter,
+#device-status-filter {
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1e293b;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+/* Hakukenttä erottuu hieman muista kentistä */
+#device-search {
+    padding-left: 14px;
+    font-size: 1rem;
+}
+
+/* Selkeä fokus, kun käyttäjä napsauttaa kenttää */
+#device-search:focus,
+#device-type-filter:focus,
+#device-status-filter:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    outline: none;
+}
+
+/* Hakukentän paikkamerkkiteksti */
+#device-search::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+/* Hakukentän otsikot */
+#app-content .form-label {
+    color: #334155;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Hakutulosten lukumäärä */
+#device-result-count {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+/* Tyhjennyspainike */
+#btn-reset-filters {
+    border-radius: 8px;
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+#btn-reset-filters:hover {
+    background-color: #1e293b;
+    color: white;
+}
+
+/* Taulukon solut */
+#device-table-body td {
+    vertical-align: middle;
+}
+
+/* Pienet näytöt */
+@media (max-width: 768px) {
+    #app-content .card-body {
+        padding: 1rem;
+    }
+
+    #btn-reset-filters {
+        width: 100%;
+    }
+}
+
+/* ==========================================
+   KÄYTTÄJIEN HALLINTA
+   ========================================== */
+
+#user-search {
+    min-height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1e293b;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+#user-search:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    outline: none;
+}
+
+#user-search::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+#user-table-body td {
+    vertical-align: middle;
+}
+
+#user-table-body a {
+    color: #0369a1;
+    text-decoration: none;
+}
+
+#user-table-body a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    #user-table-body .btn {
+        margin-bottom: 4px;
+    }
+}
